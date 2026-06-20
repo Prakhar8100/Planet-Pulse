@@ -38,7 +38,7 @@ export const AssessmentWizard = () => {
     setIsSubmitting(true);
     try {
       // Send data to our FastAPI backend
-      const response = await fetch('http://localhost:8000/api/v1/assessments/calculate', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://planet-pulse-nutz.onrender.com'}/api/v1/assessments/calculate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

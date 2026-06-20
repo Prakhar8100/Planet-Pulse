@@ -16,7 +16,7 @@ export const TrackingDashboard = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/assessments/history', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://planet-pulse-nutz.onrender.com'}/api/v1/assessments/history`, {
           headers: {
             'X-Device-Token': 'demo-user-123'
           }

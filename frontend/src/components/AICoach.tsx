@@ -10,7 +10,7 @@ export const AICoach = () => {
     const fetchInsights = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:8000/api/v1/insights/coach', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://planet-pulse-nutz.onrender.com'}/api/v1/insights/coach`, {
           headers: {
             'X-Device-Token': 'demo-user-123'
           }
