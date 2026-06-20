@@ -56,6 +56,10 @@ export const AssessmentWizard = () => {
       }
       
       console.log('Assessment complete:', result);
+      
+      // Dispatch custom event to notify TrackingDashboard and AICoach to reload
+      window.dispatchEvent(new Event('assessmentComplete'));
+      
       alert('Impact calculated successfully! Scrolling to dashboard.');
       
       // Scroll to tracking dashboard to see results

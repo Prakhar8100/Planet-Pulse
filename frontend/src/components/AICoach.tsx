@@ -1,8 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Target, TrainFront } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Target, TrainFront, Loader2 } from 'lucide-react';
 
 export const AICoach = () => {
+  const [insights, setInsights] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('http://localhost:8000/api/v1/insights/coach', {
+          headers: {
+            'X-Device-Token': 'demo-user-123'
+          }
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+          setInsights(result.recommendations || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch AI insights", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Listen for custom event when assessment completes to refresh data
+    const handleRefresh = () => fetchInsights();
+    window.addEventListener('assessmentComplete', handleRefresh);
+    
+    fetchInsights();
+    return () => window.removeEventListener('assessmentComplete', handleRefresh);
+  }, []);
+
+  // Simple icon mapping based on tags
+  const getIcon = (tags: string[]) => {
+    if (tags.includes('Transport')) return <TrainFront size={24} className="text-brand-emerald" />;
+    if (tags.includes('Diet')) return <Target size={24} className="text-highlight" />;
+    return <Zap size={24} className="text-brand-blue" />;
+  };
+
   return (
     <section id="coach" className="py-24 bg-surface relative overflow-hidden">
       {/* Background glow */}
@@ -11,7 +49,7 @@ export const AICoach = () => {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-highlight/20 text-highlight border border-highlight/30 mb-6 text-sm font-medium">
-            <Sparkles size={16} /> Powered by Gemini AI
+            <Sparkles size={16} /> Powered by DeepSeek AI (OpenRouter)
           </div>
           <h2 className="text-4xl md:text-5xl font-bold font-inter-tight mb-4">Your AI Climate Coach</h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
@@ -19,35 +57,31 @@ export const AICoach = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <CoachCard 
-            delay={0}
-            icon={<TrainFront size={24} className="text-brand-emerald" />}
-            title="Optimize Commute"
-            impact="240 kg CO₂e / yr"
-            savings="$350 / yr"
-            reasoning="You drive 100km weekly. Switching 2 weekly car trips to the metro can significantly cut emissions and save on gas and parking."
-            tags={['High Impact', 'Transport']}
-          />
-          <CoachCard 
-            delay={0.2}
-            icon={<Zap size={24} className="text-brand-blue" />}
-            title="Smart Heating"
-            impact="180 kg CO₂e / yr"
-            savings="$120 / yr"
-            reasoning="Your winter gas usage is above average. Lowering your thermostat by 1°C while sleeping reduces energy consumption by 8%."
-            tags={['Energy', 'Easy Win']}
-          />
-          <CoachCard 
-            delay={0.4}
-            icon={<Target size={24} className="text-highlight" />}
-            title="Plant-Based Day"
-            impact="110 kg CO₂e / yr"
-            savings="$150 / yr"
-            reasoning="Incorporating just one meatless day per week reduces agricultural emissions and often lowers weekly grocery bills."
-            tags={['Diet', 'Health']}
-          />
-        </div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-400 space-y-4">
+            <Loader2 size={32} className="animate-spin text-highlight" />
+            <p>Analyzing your data to generate personalized insights...</p>
+          </div>
+        ) : insights.length === 0 ? (
+          <div className="text-center text-gray-400 py-12">
+            No insights available yet. Complete an assessment to get started!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {insights.map((insight, index) => (
+              <CoachCard 
+                key={index}
+                delay={index * 0.2}
+                icon={getIcon(insight.tags || [])}
+                title={insight.title}
+                impact={insight.impact}
+                savings={insight.savings}
+                reasoning={insight.reasoning}
+                tags={insight.tags || []}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
