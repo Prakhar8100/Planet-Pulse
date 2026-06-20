@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-brand-emerald: #00E58A;
+  --color-brand-blue: #3BA4FF;
+  --color-bg-primary: #060B12;
+  --color-surface: #101827;
+  --color-card: #131F32;
+  --color-highlight: #7B61FF;
+  --color-warning: #FFB84D;
+  --color-danger: #FF5A7A;
+  
+  --font-inter: "Inter", sans-serif;
+  --font-inter-tight: "Inter Tight", sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg-primary);
+    color: white;
+    font-family: var(--font-inter);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-inter-tight);
+    letter-spacing: -0.02em;
+  }
+  
+  /* Robust Focus Indicators for Accessibility */
+  *:focus-visible {
+    outline: 2px solid var(--color-brand-emerald);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background-color: color-mix(in srgb, var(--color-card) 60%, transparent);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, var(--color-brand-emerald), var(--color-brand-blue));
+  }
+}
