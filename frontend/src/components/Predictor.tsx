@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Calendar, TrendingDown, Coins, Zap } from 'lucide-react';
 
-const generatePredictionData = (months: number) => {
-  const current = 3120; // kg CO2e
-  const target = 2000;
+const generatePredictionData = (months: number, current: number) => {
+  const target = Math.max(0, current * 0.6); // Target a 40% reduction
   
   return Array.from({ length: months + 1 }).map((_, i) => {
     const projectedReduction = (current - target) * (i / 12) * 0.8; // Assume 80% success rate
@@ -19,7 +18,32 @@ const generatePredictionData = (months: number) => {
 
 export const Predictor = () => {
   const [timeframe, setTimeframe] = useState<1 | 3 | 6 | 12>(6);
-  const data = generatePredictionData(timeframe);
+  const [currentEmissions, setCurrentEmissions] = useState(3120);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/v1/assessments/history', {
+          headers: { 'X-Device-Token': 'demo-user-123' }
+        });
+        const result = await response.json();
+        if (result.status === 'success' && result.history.length > 0) {
+          const latest = result.history[0]; // the backend returns order by created_at DESC? 
+          // Wait, TrackingDashboard reversed it. So history[0] is latest.
+          setCurrentEmissions(latest.total_emissions || 3120);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tracking history for predictor", err);
+      }
+    };
+
+    const handleRefresh = () => fetchHistory();
+    window.addEventListener('assessmentComplete', handleRefresh);
+    fetchHistory();
+    return () => window.removeEventListener('assessmentComplete', handleRefresh);
+  }, []);
+
+  const data = generatePredictionData(timeframe, currentEmissions);
   const finalMonth = data[data.length - 1];
 
   return (
@@ -30,7 +54,7 @@ export const Predictor = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold font-inter-tight mb-4">Future Impact Simulator</h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Simulate your potential environmental and financial savings over time by adopting your AI Coach's strategies.
+            Simulate your potential environmental and financial savings over time based on your current footprint of {currentEmissions} kg CO₂e.
           </p>
         </div>
 
